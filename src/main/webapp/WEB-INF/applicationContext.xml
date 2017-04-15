@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!-- @version $Id: applicationContext.xml 561608 2007-08-01 00:33:12Z vgritsenko $ -->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns:security="http://www.springframework.org/schema/security"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/mvc
+	   					   http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	   					   http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+						   http://www.springframework.org/schema/context
+						   http://www.springframework.org/schema/context/spring-context.xsd
+					       http://www.springframework.org/schema/tx
+					       http://www.springframework.org/schema/tx/spring-tx.xsd
+					       http://www.springframework.org/schema/security
+						   http://www.springframework.org/schema/security/spring-security.xsd
+						   http://www.springframework.org/schema/aop
+						   http://www.springframework.org/schema/aop/spring-aop.xsd">
+	<!-- Spring Related Configuration -->
+
+	<!-- Used to Activate Annotations -->
+	<context:annotation-config/>
+
+	<!--  Used for Scanning the Packages and Registering the Beans withing Application Context -->
+	<context:component-scan base-package="com.pr.expense"/>
+
+	<!-- Used to Specify Annotation Driven Messages -->
+
+	<mvc:annotation-driven enable-matrix-variables="true">
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<mvc:default-servlet-handler/>
+
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="url" value="jdbc:postgresql://localhost:5432/expmgr"/>
+		<property name="username" value="postgres"/>
+		<property name="password" value="user$123"/>
+	</bean>
+	<!-- Session Factory Of Spring -->
+	<bean id="sessionFactory"
+		  class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:hibernate.cfg.xml"/>
+		<property name="packagesToScan" value="com.pr.expense.dao.model"/>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQL9Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.jdbc.batch_size">20</prop>
+				<prop key="hibernate.order_inserts">true</prop>
+				<prop key="hibernate.order_updates">true</prop>
+				<prop key="hibernate.connection.url">jdbc:postgresql://localhost:5432/expmgr</prop>
+				<prop key="hibernate.connection.driver_class">org.postgresql.Driver</prop>
+				<!--<prop key="hibernate.hbm2ddl.auto">update</prop>-->
+			</props>
+		</property>
+	</bean>
+
+	<!-- Enabling Transaction -->
+	<tx:annotation-driven/>
+	<bean id="transactionManager"
+		  class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+
+	<!-- Using JDBC Template -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate"
+		  scope="prototype">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!-- Enables swgger ui-->
+	<mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
+	<!--<mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/"/>-->
+
+	<!-- Include a swagger configuration-->
+	<bean name="/applicationSwaggerConfig" class="com.pr.expense.swagger.SwaggerConfig"/>
+
+	<!--  Security  -->
+	<security:http pattern="/docs/**" security="none"/>
+	<security:http pattern="/index.html" security="none"/>
+	<security:http pattern="/api/v1/logout" security="none"/>
+	<security:http pattern="/api/v1/authenticate" security="none"/>
+	<security:http pattern="/api/v1/refreshtoken" security="none"/>
+	<security:http pattern="/api/v1/acceptterms" security="none"/>
+	<security:http pattern="/api/v1/users/register" security="none"/>
+	<security:http pattern="/api/v2/api-docs/**" security="none"/>
+	<security:http pattern="/api/webjars/**" security="none"/>
+
+
+	<security:http entry-point-ref="restAuthenticationEntryPoint"
+				   use-expressions="true" auto-config="false" create-session="stateless">
+		<security:intercept-url pattern="/api/v1/admin/**" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/api/v1/**"/>
+		<security:custom-filter ref="tokenAuthenticationFilter"
+								after="LAST"/>
+		<security:logout/>
+	</security:http>
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider
+				ref="tokenAuthenticationProvider">
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>
