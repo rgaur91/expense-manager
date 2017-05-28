@@ -11,4 +11,6 @@ import java.util.List;
 public interface CategoryDao {
 
 	List<CategoryModel> getAllCategories();
+
+	void save(CategoryModel categoryModel);
 }

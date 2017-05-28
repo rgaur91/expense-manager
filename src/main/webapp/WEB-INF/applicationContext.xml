@@ -51,6 +51,9 @@
 		</mvc:message-converters>
 	</mvc:annotation-driven>
 
+<!--	<bean name="viewResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver"/>
+	<bean name="jsonTemplate" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>-->
+
 	<mvc:default-servlet-handler/>
 
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
@@ -110,7 +113,7 @@
 	<security:http pattern="/api/webjars/**" security="none"/>
 
 
-	<security:http entry-point-ref="restAuthenticationEntryPoint"
+	<!--<security:http entry-point-ref="restAuthenticationEntryPoint"
 				   use-expressions="true" auto-config="false" create-session="stateless">
 		<security:intercept-url pattern="/api/v1/admin/**" access="hasRole('ROLE_ADMIN')"/>
 		<security:intercept-url pattern="/api/v1/**"/>
@@ -122,6 +125,7 @@
 		<security:authentication-provider
 				ref="tokenAuthenticationProvider">
 		</security:authentication-provider>
-	</security:authentication-manager>
-
+	</security:authentication-manager>-->
+	<bean id="multipartResolver"
+		  class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
 </beans>

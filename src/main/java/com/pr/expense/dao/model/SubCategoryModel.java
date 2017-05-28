@@ -15,6 +15,7 @@ public class SubCategoryModel {
 	private CategoryModel category;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_sub_category")
 	public Integer getIdSubCategory() {
 		return idSubCategory;

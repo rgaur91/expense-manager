@@ -16,6 +16,7 @@ public class CategoryModel {
 	private List<SubCategoryModel> subCategories;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_category")
 	public Integer getIdCategory() {
 		return idCategory;
@@ -72,7 +73,7 @@ public class CategoryModel {
 		return result;
 	}
 
-	@OneToMany(mappedBy = "category")
+	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
 	public List<SubCategoryModel> getSubCategories() {
 		return subCategories;
 	}

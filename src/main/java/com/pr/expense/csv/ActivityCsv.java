@@ -161,10 +161,12 @@ public class ActivityCsv {
 		this.accountId = accountId;
 	}
 
+	@JsonIgnore
 	public Key getKey1(){
 		return new Key1(accountId, date, amount);
 	}
 
+	@JsonIgnore
 	public Key getKey2(){
 		return new Key2(accountId, date, categoryId, subCategoryId);
 	}

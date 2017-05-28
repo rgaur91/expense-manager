@@ -26,4 +26,9 @@ public class CategoryDaoImpl implements CategoryDao {
 		List<CategoryModel> list = criteria.list();
 		return list;
 	}
+
+	@Override
+	public void save(CategoryModel categoryModel) {
+		sessionFactory.getCurrentSession().saveOrUpdate(categoryModel);
+	}
 }

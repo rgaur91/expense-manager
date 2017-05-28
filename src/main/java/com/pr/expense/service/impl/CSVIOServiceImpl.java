@@ -1,9 +1,12 @@
 package com.pr.expense.service.impl;
 
+import com.pr.commons.csv.CSVParser;
 import com.pr.commons.csv.LineResult;
 import com.pr.commons.csv.ParseResult;
+import com.pr.commons.dto.Message;
 import com.pr.commons.util.StringUtil;
 import com.pr.expense.csv.ActivityCsv;
+import com.pr.expense.csv.CategoryCsv;
 import com.pr.expense.csv.ExpenseManagerParser;
 import com.pr.expense.dao.AccountDao;
 import com.pr.expense.dao.ActivityDao;
@@ -19,12 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static javafx.scene.input.KeyCode.T;
+import java.util.*;
 
 /**
  * Created by jhanay on 1/15/2017.
@@ -47,8 +45,60 @@ public class CSVIOServiceImpl implements CSVIOService {
 
 		ParseResult<ActivityCsv> parseResult = parse(csvData);
 		addOrUpdate(parseResult);
-		return null;
+		return "upload.successful";
     }
+
+	@Override
+	@Transactional
+	public ParseResult<ActivityCsv> validate(String csvData) {
+		return parse(csvData);
+	}
+
+	@Override
+	@Transactional
+	public Message uploadCategory(String cavData) {
+		ParseResult<CategoryCsv> parseResult = new CSVParser<CategoryCsv>() {
+			@Override
+			protected void validateData(CategoryCsv categoryCsv, Set<String> error) {
+			}
+		}.parse(cavData, CategoryCsv.class);
+		List<CategoryModel> allCategoryList = categoryDao.getAllCategories();
+		Map<String, CategoryModel> allCategories = new HashMap<>(allCategoryList.size());
+		Map<String, Map<String, SubCategoryModel>> allSubcategories = new HashMap<>(allCategoryList.size());
+		for (CategoryModel categoryModel : allCategoryList) {
+			allCategories.put(categoryModel.getName().toLowerCase(), categoryModel);
+			HashMap<String, SubCategoryModel> subCategories = new HashMap<>();
+			allSubcategories.put(categoryModel.getName().toLowerCase(), subCategories);
+			for (SubCategoryModel subCategoryModel : categoryModel.getSubCategories()) {
+				subCategories.put(subCategoryModel.getName().toLowerCase(), subCategoryModel);
+			}
+		}
+
+		for (LineResult<CategoryCsv> lineResult : parseResult.getLineResults()) {
+			CategoryCsv data = lineResult.getData();
+			CategoryModel categoryModel = allCategories.get(data.getCategory());
+			if (categoryModel == null) {
+				categoryModel = new CategoryModel();
+				categoryModel.setName(data.getCategory());
+				categoryDao.save(categoryModel);
+				allCategories.put(data.getCategory(),categoryModel);
+				allSubcategories.put(data.getCategory(), new HashMap<String, SubCategoryModel>());
+			}
+			Map<String, SubCategoryModel> category = allSubcategories.get(data.getCategory());
+			SubCategoryModel subCategoryModel = category.get(data.getSubCategory());
+			if (subCategoryModel == null) {
+				subCategoryModel = new SubCategoryModel();
+				List<SubCategoryModel> subCategories = categoryModel.getSubCategories();
+				if (subCategories == null) {
+					subCategories = new LinkedList<>();
+					categoryModel.setSubCategories(subCategories);
+				}
+				category.put(data.getSubCategory(), subCategoryModel);
+				subCategories.add(subCategoryModel);
+			}
+		}
+		return new Message("added.successful");
+	}
 
 	private ParseResult<ActivityCsv> parse(String csvData){
 		ExpenseManagerParser parser = new ExpenseManagerParser();
@@ -117,6 +167,7 @@ public class CSVIOServiceImpl implements CSVIOService {
 				}
 			}
 		}
+		return parseResult;
 	}
 
 	private ActivityCsv convert(TransactionsModel transaction) {
