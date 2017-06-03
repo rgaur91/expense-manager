@@ -2,6 +2,7 @@ package com.pr.expense.dao.impl;
 
 import com.pr.expense.dao.CategoryDao;
 import com.pr.expense.dao.model.CategoryModel;
+import com.pr.expense.dao.model.SubCategoryModel;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +31,13 @@ public class CategoryDaoImpl implements CategoryDao {
 	@Override
 	public void save(CategoryModel categoryModel) {
 		sessionFactory.getCurrentSession().saveOrUpdate(categoryModel);
+	}
+
+	@Override
+	public List<SubCategoryModel> getAllSubCategory() {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(SubCategoryModel.class);
+		@SuppressWarnings("unchecked")
+		List<SubCategoryModel> list = criteria.list();
+		return list;
 	}
 }

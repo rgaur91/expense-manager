@@ -1,6 +1,7 @@
 package com.pr.expense.dao;
 
 import com.pr.expense.dao.model.CategoryModel;
+import com.pr.expense.dao.model.SubCategoryModel;
 
 import java.util.List;
 
@@ -13,4 +14,6 @@ public interface CategoryDao {
 	List<CategoryModel> getAllCategories();
 
 	void save(CategoryModel categoryModel);
+
+	List<SubCategoryModel> getAllSubCategory();
 }

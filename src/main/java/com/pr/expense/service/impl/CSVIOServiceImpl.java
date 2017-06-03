@@ -88,6 +88,8 @@ public class CSVIOServiceImpl implements CSVIOService {
 			SubCategoryModel subCategoryModel = category.get(data.getSubCategory());
 			if (subCategoryModel == null) {
 				subCategoryModel = new SubCategoryModel();
+				subCategoryModel.setName(data.getSubCategory());
+				subCategoryModel.setCategory(categoryModel);
 				List<SubCategoryModel> subCategories = categoryModel.getSubCategories();
 				if (subCategories == null) {
 					subCategories = new LinkedList<>();

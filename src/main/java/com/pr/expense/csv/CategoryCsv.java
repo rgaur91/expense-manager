@@ -18,7 +18,7 @@ public class CategoryCsv {
 	private Integer categoryId;
 
 	@JsonProperty(value = "SubCategory")
-	@CsvField(sequence = 2, defaultValue = "NA")
+	@CsvField(sequence = 2, defaultValue = "NA", required = false)
 	private String subCategory;
 
 	@JsonIgnore
